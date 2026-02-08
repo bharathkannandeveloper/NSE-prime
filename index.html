@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NSE PRIME | ZENITH v12.2</title>
 
+    <!-- PWA / EDGEONE SUPPORT -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NSE Prime">
+
     <!-- FONTS & CSS -->
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
@@ -520,9 +527,14 @@
                     try {
                         const p = "https://corsproxy.io/?";
                         const r = await fetch(p + encodeURIComponent("https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"));
+                        if (!r.ok) throw new Error("Network response was not ok");
                         const res = Papa.parse(await r.text(), { header: true, skipEmptyLines: true });
                         this.queue = res.data.map(x => x.SYMBOL).filter(x => x && x.length > 1);
-                    } catch (e) { this.queue = [...SECTORS['NIFTY50']]; }
+                    } catch (e) {
+                        console.warn("NSE Fetch Failed (likely CORS or Proxy issue):", e);
+                        alert("Note: NSE Live List failed to load. Using static Nifty 50 list. (This is common on GitHub Pages due to CORS)");
+                        this.queue = [...SECTORS['NIFTY50']];
+                    }
                 } else {
                     this.queue = [...SECTORS[sector]];
                 }
